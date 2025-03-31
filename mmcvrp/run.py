@@ -40,8 +40,8 @@ if __name__ == "__main__":
                     "Solution Cost: ": solution_cost, 
                     "Optimal: ": opt,
                     "Time: ": time_used}
-            solution_cost, solution_path, opt, time_used = didp_model.solve(instance,time_limit, bound=False)
             print(f"Solving instance {i} with no bound")
+            solution_cost, solution_path, opt, time_used = didp_model.solve(instance,time_limit, bound=False)
             data["No_Bound"] = {"Path: ": solution_path,
                     "Solution Cost: ": solution_cost, 
                     "Optimal: ": opt,

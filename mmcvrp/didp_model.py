@@ -76,10 +76,13 @@ class DIDPModel():
             preconditions = [unvisited.is_empty(), locations[k] != n]
         )
             model.add_transition(visit_depot)
-
+        
         if bound:
-            lower_bound = max([c[n][i] + c[i][n] for i in range(n-1)])
-            model.add_dual_bound(lower_bound)
+            lower_bound = model.add_int_table(
+                    [c[n][j] + c[j][n] for j in range(n)]
+                )
+            model.add_dual_bound((unvisited.is_empty()).if_then_else(0, lower_bound.max(unvisited)))
+              
         return model
     
     def build_path(self, solution):

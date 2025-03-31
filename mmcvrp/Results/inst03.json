@@ -1,0 +1,42 @@
+{
+    "Bound": {
+        "Path: ": [
+            [
+                3,
+                6,
+                5
+            ],
+            [
+                2,
+                4
+            ],
+            [
+                7,
+                1
+            ]
+        ],
+        "Solution Cost: ": 12,
+        "Optimal: ": true,
+        "Time: ": 0.1591537
+    },
+    "No_Bound": {
+        "Path: ": [
+            [
+                5,
+                4,
+                2
+            ],
+            [
+                3,
+                6
+            ],
+            [
+                1,
+                7
+            ]
+        ],
+        "Solution Cost: ": 12,
+        "Optimal: ": true,
+        "Time: ": 0.2242053
+    }
+}
