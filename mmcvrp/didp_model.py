@@ -4,7 +4,7 @@ from collections import defaultdict
 
 class DIDPModel():
 
-    def define_model(self, instance):
+    def define_model(self, instance, bound):
         m = instance[0]
         n = instance[1]
         q = instance[2]
@@ -77,8 +77,9 @@ class DIDPModel():
         )
             model.add_transition(visit_depot)
 
-        lower_bound = max([c[n][i] + c[i][n] for i in range(n-1)])
-        model.add_dual_bound(lower_bound)
+        if bound:
+            lower_bound = max([c[n][i] + c[i][n] for i in range(n-1)])
+            model.add_dual_bound(lower_bound)
         return model
     
     def build_path(self, solution):
@@ -91,8 +92,8 @@ class DIDPModel():
         return [vehicle_paths[key] for key in sorted(vehicle_paths.keys())]
 
 
-    def solve(self, instance, time_limit):
-        model = self.define_model(instance)
+    def solve(self, instance, time_limit, bound):
+        model = self.define_model(instance, bound)
         solver = dp.LNBS(model, time_limit=time_limit, quiet=True, f_operator=dp.FOperator.Max)
         solution = solver.search()
         solution_path = self.build_path(solution)

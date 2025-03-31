@@ -27,16 +27,22 @@ def read_instances(filename):
 
 
 if __name__ == "__main__":
-    time_limit = 600
+    time_limit = 300
     didp_model = DIDPModel()
     os.makedirs("Results", exist_ok=True)
     for i in range(1, 22):
         instance = read_instances(f"Instances/inst{i:02}.dat")
         if not os.path.exists(f"Results/inst{i:02}.json"):
-            print(f"Solving instance {i}")
+            print(f"Solving instance {i} with bound")
             data = {} 
-            solution_cost, solution_path, opt, time_used = didp_model.solve(instance,time_limit)
-            data = {"Path: ": solution_path,
+            solution_cost, solution_path, opt, time_used = didp_model.solve(instance,time_limit, bound=True)
+            data["Bound"] = {"Path: ": solution_path,
+                    "Solution Cost: ": solution_cost, 
+                    "Optimal: ": opt,
+                    "Time: ": time_used}
+            solution_cost, solution_path, opt, time_used = didp_model.solve(instance,time_limit, bound=False)
+            print(f"Solving instance {i} with no bound")
+            data["No_Bound"] = {"Path: ": solution_path,
                     "Solution Cost: ": solution_cost, 
                     "Optimal: ": opt,
                     "Time: ": time_used}
