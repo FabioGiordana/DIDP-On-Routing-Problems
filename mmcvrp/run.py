@@ -30,7 +30,7 @@ if __name__ == "__main__":
     time_limit = 600
     didp_model = DIDPModel()
     os.makedirs("Results", exist_ok=True)
-    for i in range(1, 2):
+    for i in range(1, 22):
         instance = read_instances(f"Instances/inst{i:02}.dat")
         if not os.path.exists(f"Results/inst{i:02}.json"):
             print(f"Solving instance {i}")

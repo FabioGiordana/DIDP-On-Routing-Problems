@@ -92,8 +92,6 @@ class DIDPModel():
         model = self.define_model(instance)
         solver = dp.LNBS(model, time_limit=time_limit, quiet=True)
         solution = solver.search()
-        for t in solution.transitions:
-            print(t.name)
         solution_path = self.build_path(solution)
         solution_cost = solution.cost
         return solution_cost, solution_path, solution.is_optimal, solution.time
