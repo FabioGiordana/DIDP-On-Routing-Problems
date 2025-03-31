@@ -76,6 +76,9 @@ class DIDPModel():
             preconditions = [unvisited.is_empty(), locations[k] != n]
         )
             model.add_transition(visit_depot)
+
+        lower_bound = max([c[n][i] + c[i][n] for i in range(n-1)])
+        model.add_dual_bound(lower_bound)
         return model
     
     def build_path(self, solution):
@@ -90,7 +93,7 @@ class DIDPModel():
 
     def solve(self, instance, time_limit):
         model = self.define_model(instance)
-        solver = dp.LNBS(model, time_limit=time_limit, quiet=True)
+        solver = dp.LNBS(model, time_limit=time_limit, quiet=True, f_operator=dp.FOperator.Max)
         solution = solver.search()
         solution_path = self.build_path(solution)
         solution_cost = solution.cost
