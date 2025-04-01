@@ -60,7 +60,7 @@ class DIDPModel():
                     (vehicle, vehicle + 1),
                     (time, service_time[j] + dp.max(travel_cost[location, j], initial_time[j]))
                 ],
-                preconditions = [vehicle < m, unvisited.contains(j), travel_cost[location, j] <= deadline[j]]
+                preconditions = [vehicle < m, unvisited.contains(j)]
             )
             model.add_transition(visit_from_depot)
 
