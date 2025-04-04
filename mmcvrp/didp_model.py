@@ -72,7 +72,8 @@ class DIDPModel():
             visit_depot = dp.Transition(
             name = f"return to depot with vehicle {k+1}",
             cost = dp.max(travel_cost[locations[k], n] + partial_costs[k], dp.IntExpr.state_cost()),
-            effects = [(locations[k], n)],
+            effects = [(locations[k], n),
+                       (partial_costs[k], travel_cost[locations[k], n] + partial_costs[k])],
             preconditions = [unvisited.is_empty(), locations[k] != n]
         )
             model.add_transition(visit_depot)

@@ -18,7 +18,6 @@ array[1..n+2*m] of var 1..n+2*m: pred;
 array[1..n+2*m] of var 1..m: assign;
 var int: distance = sum([c[pred[i], i] | i in 1..n+2*m]);
 array[1..n+2*m] of var int: time;
-var int: vehicles = max([assign[j] | j in 1..n]);
 
 
 %constraints
@@ -80,7 +79,7 @@ solve :: seq_search([
     int_search(assign, dom_w_deg, indomain_random),
     relax_and_reconstruct(pred, 85),
     restart_luby(100)
-]) minimize vehicles/m + distance/upper_b;
+]) minimize distance;
 
 output ["pred = \(pred), obj = \(distance)"];
 
