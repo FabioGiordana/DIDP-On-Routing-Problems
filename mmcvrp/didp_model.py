@@ -31,13 +31,29 @@ class DIDPModel():
             p = model.add_int_resource_var(target = 0, less_is_better=True)
             partial_loads.append(p)
 
+        vehicles = model.add_int_resource_var(target=0, less_is_better=False)
+
         capacities = model.add_int_table(q)
 
         weight = model.add_int_table(w)
 
         travel_cost = model.add_int_table(c)
 
-        model.add_base_case([unvisited.is_empty()] + [l==n for l in locations])      
+        model.add_base_case([unvisited.is_empty()] + [l==n for l in locations])
+
+        for k in range(m):
+            for j in range(n):
+                start_path = dp.Transition(
+                    name = f"visit {j+1} from the depot with vehicle {k+1}",
+                    cost = dp.max(dp.IntExpr.state_cost(), travel_cost[n, j]),
+                    effects = [(unvisited, unvisited.remove(j)),
+                            (locations[k], j),
+                            (partial_costs[k], travel_cost[n, j]),
+                            (partial_loads[k], weight[j]),
+                            (vehicles, vehicles+1)],
+                    preconditions = [unvisited.contains(j), partial_loads[k] + weight[j] <= capacities[k], locations[k]==n]
+                )
+                model.add_transition(start_path)
 
         for k in range(m):
             for j in range(n):
@@ -48,7 +64,7 @@ class DIDPModel():
                             (locations[k], j),
                             (partial_costs[k], partial_costs[k] + travel_cost[locations[k], j]),
                             (partial_loads[k], partial_loads[k] + weight[j])],
-                    preconditions = [unvisited.contains(j), partial_loads[k] + weight[j] <= capacities[k]]
+                    preconditions = [unvisited.contains(j), partial_loads[k] + weight[j] <= capacities[k], locations[k]!=n]
                 )
                 model.add_transition(visit_from_location)
 

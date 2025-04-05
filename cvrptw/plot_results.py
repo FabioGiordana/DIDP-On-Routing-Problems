@@ -12,7 +12,7 @@ def init_dict():
     return d
 
 
-def save_solutions(d, title, filename):
+def save_solutions(d, title, x_title, filename):
     dir = "Plots"
     os.makedirs(dir, exist_ok=True)
     plt.figure(figsize=(8, 5))
@@ -21,7 +21,7 @@ def save_solutions(d, title, filename):
         y_vals = list(d[m].keys())
         plt.plot(x_vals, y_vals, marker='o', label=m)
     
-    plt.xlabel("Primal Integral")
+    plt.xlabel(x_title)
     plt.ylabel("Ratio of Instances")
     plt.title(title)
     plt.legend()
@@ -49,12 +49,14 @@ def plot_solutions():
                     cumulative_gap[m][i/total] = cumulative_gap[m][(i-1)/total] + p_gap
                     all_benchmarks_gap[m][all_count/all_total] = all_benchmarks_gap[m][(all_count-1)/all_total] + p_gap
                 all_count += 1
-        save_solutions(cumulative_integral, title = f"Primal Integral for {benchmark} benchmark instances", 
-                       filename=f"Integral_{benchmark}.pdf")
-        save_solutions(cumulative_gap, title = f"Primal Gap for {benchmark} benchmark instances", 
-                       filename=f"Gap_{benchmark}.pdf")
-    save_solutions(all_benchmarks_int, "Primal Integral on all benchmark instances", "Total_Integral.pdf")
-    save_solutions(all_benchmarks_gap, "Primal Gap on all benchmark instances", "Total_Gap.pdf")
+        save_solutions(cumulative_integral, f"Primal Integral for {benchmark} benchmark instances", 
+                       "Primal integral", f"Integral_{benchmark}.pdf")
+        save_solutions(cumulative_gap, f"Primal Gap for {benchmark} benchmark instances", 
+                       "Primal gap", f"Gap_{benchmark}.pdf")
+    save_solutions(all_benchmarks_int, "Primal Integral on all benchmark instances",
+                   "Primal integral", "Total_Integral.pdf")
+    save_solutions(all_benchmarks_gap, "Primal Gap on all benchmark instances",
+                   "Primal gap", "Total_Gap.pdf")
         
 
 if __name__ == "__main__":
