@@ -12,10 +12,8 @@ def init_dict():
     return d
 
 
-def save_solutions(d, title, filename, vehicle):
+def save_solutions(d, title, filename):
     dir = "Plots"
-    if vehicle:
-        dir="Plots_Vehicles"
     os.makedirs(dir, exist_ok=True)
     plt.figure(figsize=(8, 5))
     for m in methods:
@@ -24,34 +22,39 @@ def save_solutions(d, title, filename, vehicle):
         plt.plot(x_vals, y_vals, marker='o', label=m)
     
     plt.xlabel("Primal Integral")
-    plt.ylabel("Instances")
+    plt.ylabel("Ratio of Instances")
     plt.title(title)
     plt.legend()
     plt.grid()
     plt.savefig(f"{dir}/{filename}")
     plt.close()
 
-def plot_solutions(vehicle=True):
-    all_benchmarks = init_dict()
+def plot_solutions():
+    all_benchmarks_int = init_dict()
+    all_benchmarks_gap = init_dict()
     all_total = sum(benchmarks.values())
     all_count = 1
     for benchmark in benchmarks:
         cumulative_integral = init_dict()
+        cumulative_gap = init_dict()
         total = benchmarks[benchmark]
         for i in range(1, total+1):
             with open(f"Results/{benchmark}/{benchmark}{i:02}.json", "r") as file:
                 data = json.load(file)
                 for m in methods:
                     p_integral = data[m]["Primal Integral: "]
-                    if vehicle:
-                        v_used = data[m]["Used Vehicles: "]
-                        p_integral = p_integral*v_used
                     cumulative_integral[m][i/total] = cumulative_integral[m][(i-1)/total] + p_integral
-                    all_benchmarks[m][all_count/all_total] = all_benchmarks[m][(all_count-1)/all_total] + p_integral
+                    all_benchmarks_int[m][all_count/all_total] = all_benchmarks_int[m][(all_count-1)/all_total] + p_integral
+                    p_gap = data[m]["Primal Gap: "]
+                    cumulative_gap[m][i/total] = cumulative_gap[m][(i-1)/total] + p_gap
+                    all_benchmarks_gap[m][all_count/all_total] = all_benchmarks_gap[m][(all_count-1)/all_total] + p_gap
                 all_count += 1
         save_solutions(cumulative_integral, title = f"Primal Integral for {benchmark} benchmark instances", 
-                       filename=f"{benchmark}.pdf", vehicle=vehicle)
-    save_solutions(all_benchmarks, "Primal Integral on all benchmark instances", "Total.pdf",vehicle)
+                       filename=f"Integral_{benchmark}.pdf")
+        save_solutions(cumulative_gap, title = f"Primal Gap for {benchmark} benchmark instances", 
+                       filename=f"Gap_{benchmark}.pdf")
+    save_solutions(all_benchmarks_int, "Primal Integral on all benchmark instances", "Total_Integral.pdf")
+    save_solutions(all_benchmarks_gap, "Primal Gap on all benchmark instances", "Total_Gap.pdf")
         
 
 if __name__ == "__main__":
