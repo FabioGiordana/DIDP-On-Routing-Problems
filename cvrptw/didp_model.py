@@ -67,7 +67,8 @@ class DIDPModel():
         return_to_depot = dp.Transition(
             name = "return",
             cost = travel_cost[location, 0] + dp.FloatExpr.state_cost(),
-            effects = [(location, 0)],
+            effects = [(location, 0)
+                       (time, time+travel_cost[location,0])],
             preconditions = [unvisited.is_empty(), location != 0]
         )
 
