@@ -120,7 +120,7 @@ class CPModel():
         filename = f"Minizinc-Data/{name}.dzn"
         self.write_dzn_file(filename, instance)
         result = subprocess.run(
-            ['minizinc', '--solver', 'gecode', '-a', '--output-time', '--fzn-flags', 
+            ['minizinc', '--solver', 'gecode', '--output-time', '--fzn-flags', 
              f'--time {time_limit*1000}', self.model, filename],
             capture_output=True, text=True
         )
