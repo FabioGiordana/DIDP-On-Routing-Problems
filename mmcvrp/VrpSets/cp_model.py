@@ -1,7 +1,7 @@
-from datetime import timedelta
+from utils import check_solution
 import os
-from minizinc import Solver, Instance, Model, Status
-import time
+import subprocess
+import re
 
 class CPModel():
     def __init__(self, model="mmcvrp.mzn"):
@@ -13,7 +13,8 @@ class CPModel():
             res.append(int(elem*1000))
         return res
 
-    def convert_instance(self, instance, cp_instance):
+    def convert_instance(self, instance):
+        cp_instance = {}
         n = instance["n"]
         m = instance["m"]
         int_c = []
@@ -29,6 +30,7 @@ class CPModel():
         cp_instance["c"] = int_c
         cp_instance["lower_b"] = max(min_to_from)
         cp_instance["upper_b"] = min(sum(max_to), sum(max_from))
+        return cp_instance
 
     def write_dzn_file(self, filename, inst):
         os.makedirs(os.path.dirname(filename), exist_ok=True)
@@ -45,34 +47,62 @@ class CPModel():
                 else:  # Handle integers, floats, etc.
                     f.write(f"{key} = {value};\n")
 
-  
-    def build_paths(self, paths):
-        sol = []
-        for path in paths:
+    def build_paths(self, path_match, n, m):
+        flat_path = list(map(int, path_match.strip().split(',')))
+
+        if len(flat_path) != m * n:
+            raise ValueError(f"Path length mismatch: expected {m*n}, got {len(flat_path)}")
+
+        path_matrix = [flat_path[i * n:(i + 1) * n] for i in range(m)]
+
+        solution_paths = []
+        for path in path_matrix:
             tmp = []
             next = path[0] - 1
-            while next != 0:
+            while next!= 0:
                 tmp.append(next)
-                next = path[next] - 1
-            sol.append(tmp)
-        return sol
+                next = path[next] -1
+            solution_paths.append(tmp)   
+        return solution_paths
+
+  
+    def extract_obj_time(self, stdout, instance):
+        n = instance["n"]
+        m = instance["m"]
+        # Extract all objective values
+        obj_values = list(map(int, re.findall(r'obj\s*=\s*(\d+)', stdout)))
+        
+        # Extract all elapsed times
+        times = list(map(float, re.findall(r'% time elapsed:\s*([\d.]+)\s*s', stdout)))
+        
+        # Extract the last path array (flattened)
+        path_matches = re.findall(r'path\s*=\s*\[([^\]]+)\]', stdout)
+        if not path_matches:
+            raise ValueError("No path array found in stdout.")
+        
+        solution_paths = []
+        for i in range(len(path_matches)):
+            solution_paths = self.build_paths(path_matches[i], n, m)   
+            check_solution(solution_paths, obj_values[i], instance)
+        
+        optimal_match = re.findall(r'={10}(.*)', stdout)
+        is_optimal = any("optimal" in line.lower() for line in optimal_match) or len(optimal_match) == 1
+
+        return solution_paths, obj_values, times, is_optimal
 
     def solve(self, instance, name, time_limit):
+        instance = self.convert_instance(instance)
         filename = f"Minizinc-Data/{name}.dzn"
         self.write_dzn_file(filename, instance)
-        solver = Solver.lookup("gecode")
-        m = Model(f"mmcvrp.mzn")
-        cp_instance = Instance(solver, m)
-        self.convert_instance(instance, cp_instance) 
-        start_time = time.time()
-        result = cp_instance.solve(timeout=timedelta(seconds=time_limit))
-        optimal = False
-        if result.status is Status.OPTIMAL_SOLUTION:
-            optimal = True
-        if result.status is Status.UNKNOWN:
-            return None, None, None, None
-        path = result["path"]
-        solution_cost = result["objective"]
-        solution_path = self.build_paths(path)
-        used_time = time.time() - start_time
-        return solution_cost/1000, solution_path, optimal, used_time
+        result = subprocess.run(
+            ['minizinc', '--solver', 'gecode', '--output-time', '--fzn-flags', 
+             f'--time {time_limit*1000}', self.model, filename],
+            capture_output=True, text=True
+        )
+        print(result)
+        solution_path, solution_costs, times, opt = self.extract_obj_time(result.stdout, instance)
+        solution_costs = [round(s/1000,1) for s in solution_costs]
+        solution_costs.insert(0, None)
+        times.insert(0, 0)
+        times.append(max(times[-1], time_limit))
+        return solution_costs, times, solution_costs[-1], solution_path, opt

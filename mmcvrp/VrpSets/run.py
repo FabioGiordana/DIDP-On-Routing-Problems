@@ -118,21 +118,23 @@ if __name__ == "__main__":
             print(f"Solving instance {filepath}")
             if "CP_Model" not in data.keys():
                     print(f"Running CP_Model")
-                    solution_cost, solution_path, opt, time_used = cp_model.solve(copy.deepcopy(instance), f"{filepath}", time_limit)
-                    data["CP_Model"] = {"Solution Cost: ": solution_cost, 
-                    "Path: ": solution_path,
-                    "Optimal: ": opt,
-                    "Time: ": time_used}
+                    solution_costs, times, best_cost, best_path, opt = cp_model.solve(copy.deepcopy(instance), f"{filepath}", time_limit)
+                    data["CP_Model"] = {"Times: ": times,
+                    "Solution Costs: ": solution_costs, 
+                    "Optimality: ": opt,
+                    "Best Cost: ": best_cost,
+                    "Best Path: ": best_path}
                     with open(f"{dir}/{filepath}.json", "w") as json_file:
                             json.dump(data, json_file, indent=4)
             for method in methods.keys():
                 if method not in data.keys():
                     print(f"Running {method}")
                     bound, implied = methods[method]
-                    solution_cost, solution_path, opt, time_used = didp_model.solve(instance,time_limit, bound, implied)
-                    data[method] = {"Solution Cost: ": solution_cost, 
-                    "Path: ": solution_path,
-                    "Optimal: ": opt,
-                    "Time: ": time_used}
+                    solution_costs, times, best_cost, best_path, opt = didp_model.solve(instance,time_limit, bound, implied)
+                    data[method] = {"Times: ": times,
+                    "Solution Costs: ": solution_costs, 
+                    "Optimality: ": opt,
+                    "Best Cost: ": best_cost,
+                    "Best Path: ": best_path}
                     with open(f"{dir}/{filepath}.json", "w") as json_file:
                             json.dump(data, json_file, indent=4)

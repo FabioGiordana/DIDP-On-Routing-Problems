@@ -1,6 +1,7 @@
 import didppy as dp
 import re
 from collections import defaultdict
+from utils import check_solution
 
 
 class DIDPModel():
@@ -101,9 +102,19 @@ class DIDPModel():
     def solve(self, instance, time_limit, bound=True, implied=True):
         model = self.define_model(instance, bound, implied)
         solver = dp.LNBS(model, time_limit=time_limit, quiet=True, f_operator=dp.FOperator.Max)
-        solution = solver.search()
+        terminated = False
+        solution_costs = []
+        times = []
+        times.append(0)
+        solution_costs.append(None)
+        while not terminated:
+            solution, terminated = solver.search_next()
+            solution_path = self.build_path(solution)
+            check_solution(solution_path, solution.cost, instance)
+            times.append(solution.time)
+            solution_costs.append(round(solution.cost,1))
+        times.append(time_limit)
         solution_path = self.build_path(solution)
-        solution_cost = solution.cost
-        return solution_cost, solution_path, solution.is_optimal, solution.time
+        return solution_costs, times, solution_costs[-1], solution_path, solution.is_optimal
 
        

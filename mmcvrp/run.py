@@ -35,11 +35,11 @@ if __name__ == "__main__":
         if not os.path.exists(f"Results/inst{i:02}.json"):
             print(f"Solving instance {i} with bound")
             data = {} 
-            solution_cost, solution_path, opt, time_used = didp_model.solve(instance,time_limit, bound=True)
-            data["Bound"] = {"Path: ": solution_path,
-                    "Solution Cost: ": solution_cost, 
-                    "Optimal: ": opt,
-                    "Time: ": time_used}
+            solution_costs, times, solution_path, opt = didp_model.solve(instance,time_limit, bound=True)
+            data["Bound"] = {"Times: ": time_used,
+                    "Solution Costs: ": solution_cost, 
+                    "Optimality: ": opt,
+                    "Best Path: ": solution_path}
             print(f"Solving instance {i} with no bound")
             solution_cost, solution_path, opt, time_used = didp_model.solve(instance,time_limit, bound=False)
             data["No_Bound"] = {"Path: ": solution_path,
