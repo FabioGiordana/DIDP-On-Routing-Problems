@@ -95,11 +95,10 @@ class CPModel():
         filename = f"Minizinc-Data/{name}.dzn"
         self.write_dzn_file(filename, instance)
         result = subprocess.run(
-            ['minizinc', '--solver', 'gecode', '--output-time', '--fzn-flags', 
+            ['minizinc', '--solver', 'gecode', "--all-solutions", '--output-time', '--fzn-flags', 
              f'--time {time_limit*1000}', self.model, filename],
             capture_output=True, text=True
         )
-        print(result)
         solution_path, solution_costs, times, opt = self.extract_obj_time(result.stdout, instance)
         solution_costs = [round(s/1000,1) for s in solution_costs]
         solution_costs.insert(0, None)

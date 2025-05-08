@@ -19,8 +19,16 @@ def compute_distance(p1, p2):
     y2 = p2[1]
     return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
+def count_vehicles(file_path):
+    num_routes = 0
+    with open(file_path, 'r') as file:
+        for line in file:
+            if line.startswith("Route #"):
+                num_routes += 1
+    return num_routes
+
 def read_instances(file_path):
-    with open(file_path, 'r') as f:
+    with open(f"{file_path}.vrp", 'r') as f:
         lines = f.readlines()
 
     metadata = {}
@@ -55,8 +63,8 @@ def read_instances(file_path):
 
         if section == "NODE_COORD":
             parts = line.split()
-            x = int(parts[1])
-            y = int(parts[2])
+            x = float(parts[1])
+            y = float(parts[2])
             node_coords.append((x, y))
 
         elif section == "DEMAND":
@@ -83,6 +91,8 @@ def read_instances(file_path):
     name = metadata.get("NAME", "")
     vehicle_match = re.search(r'k(\d+)', name.lower())
     m = int(vehicle_match.group(1)) if vehicle_match else None
+    if m is None:
+        m = count_vehicles(f"{file_path}.sol")
     return {
         "n": n,
         "m": m,
@@ -94,18 +104,18 @@ def read_instances(file_path):
 
 if __name__ == "__main__":
     time_limit = 600
-    folder = "Vrp-Set-A/A"
+    folder = "Vrp-Set-Golden/Golden"
     cp_model = CPModel()
     didp_model = DIDPModel()
     os.makedirs("Results", exist_ok=True)
     instances = Path(folder).rglob("*.vrp")
     for filepath in instances:
         filepath = str(filepath.stem)
-        instance = read_instances(f"{folder}/{filepath}.vrp")
-        if instance["n"] > 100:
+        instance = read_instances(f"{folder}/{filepath}")
+        if instance["n"] > 501:
             print(f"Skipping {filepath} due to the dimension of the instance")
         else:
-            dir = f"Results/A"
+            dir = f"Results/Golden"
             os.makedirs(dir, exist_ok=True)
             if os.path.exists(f"{dir}/{filepath}.json"):
                 try:

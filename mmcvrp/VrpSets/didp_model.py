@@ -109,12 +109,16 @@ class DIDPModel():
         solution_costs.append(None)
         while not terminated:
             solution, terminated = solver.search_next()
+            if solution.cost is None:
+                times.append(time_limit)
+                return None, times, None, None, False
             solution_path = self.build_path(solution)
             check_solution(solution_path, solution.cost, instance)
             times.append(solution.time)
             solution_costs.append(round(solution.cost,1))
         times.append(time_limit)
         solution_path = self.build_path(solution)
+        check_solution(solution_path, solution.cost, instance)
         return solution_costs, times, solution_costs[-1], solution_path, solution.is_optimal
 
        
