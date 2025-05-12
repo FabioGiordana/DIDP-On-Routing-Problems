@@ -59,6 +59,15 @@ def retrieve_info(filename, method):
 
 def plot_solutions():
     os.makedirs("Plots", exist_ok=True)
+    all_integral = init_dict()
+    all_gap = init_dict()
+    all_count = 1
+    all_total = 0
+    for g in results:
+        folder = f"Results/{g}"
+        instances = Path(folder).rglob("*.json")
+        instances = list(instances)
+        all_total += len(instances)
     for g in results:
         cumulative_integral = init_dict()
         cumulative_gap = init_dict()
@@ -77,13 +86,21 @@ def plot_solutions():
                 integral = primal_integral(times, solutions, best_known)
                 gap = primal_gap(solutions[-1], best_known)
                 cumulative_integral[m][count/total] = cumulative_integral[m][(count-1)/total] + integral
+                all_integral[m][all_count/all_total] = all_integral[m][(all_count-1)/all_total] + integral
                 cumulative_gap[m][count/total] = cumulative_gap[m][(count-1)/total] + gap 
+                all_gap[m][all_count/all_total] = all_gap[m][(all_count-1)/all_total] + gap
             count += 1
+            all_count += 1
 
         save_solutions(cumulative_integral, f"Primal Integral for {g} benchmark instances", 
                        "Primal integral", f"Integral_{g}.jpg")
         save_solutions(cumulative_gap, f"Primal Gap for {g} benchmark instances", 
                        "Primal gap", f"Gap_{g}.jpg")
+    save_solutions(all_integral, f"Primal Integral for all the benchmark instances", 
+                       "Primal integral", f"Integral_Total.jpg")
+    save_solutions(all_gap, f"Primal Gap for all the benchmark instances", 
+                       "Primal gap", f"Gap_Total.jpg")
+    
 
 
 

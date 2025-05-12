@@ -7,10 +7,12 @@ import copy
 from pathlib import Path
 import re
 
-methods = {"DIDP_Complete": (True, True),
-           "DIDP_No_Bound": (False, True),
-           "DIDP_No_Implied": (True, False),
-           "DIDP_Base": (False, False)}
+methods = {"DIDP_Complete": (True, True, False),
+           "DIDP_No_Bound": (False, True, False),
+           "DIDP_No_Implied": (True, False, False),
+           "DIDP_Base": (False, False, False),
+           "DIDP_No_Implied_Opt": (True, False, True),
+           "DIDP_Base_Opt": (False, False, True)}
 
 def compute_distance(p1, p2):
     x1 = p1[0]
@@ -104,7 +106,7 @@ def read_instances(file_path):
 
 if __name__ == "__main__":
     time_limit = 600
-    folder = "Vrp-Set-Golden/Golden"
+    folder = "Vrp-Set-A/A"
     cp_model = CPModel()
     didp_model = DIDPModel()
     os.makedirs("Results", exist_ok=True)
@@ -115,7 +117,7 @@ if __name__ == "__main__":
         if instance["n"] > 501:
             print(f"Skipping {filepath} due to the dimension of the instance")
         else:
-            dir = f"Results/Golden"
+            dir = f"Results/A"
             os.makedirs(dir, exist_ok=True)
             if os.path.exists(f"{dir}/{filepath}.json"):
                 try:
@@ -139,8 +141,8 @@ if __name__ == "__main__":
             for method in methods.keys():
                 if method not in data.keys():
                     print(f"Running {method}")
-                    bound, implied = methods[method]
-                    solution_costs, times, best_cost, best_path, opt = didp_model.solve(instance,time_limit, bound, implied)
+                    bound, implied, opt = methods[method]
+                    solution_costs, times, best_cost, best_path, opt = didp_model.solve(instance,time_limit, bound, implied, opt)
                     data[method] = {"Times: ": times,
                     "Solution Costs: ": solution_costs, 
                     "Optimality: ": opt,
