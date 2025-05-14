@@ -67,7 +67,6 @@ class DIDPModel():
         return model
 
     def define_model(self, instance, bound=True, implied=True):
-        raise Exception("Now i am generating the opt version")
         n = instance["n"]
         m = instance["m"]
         q = instance["q"]

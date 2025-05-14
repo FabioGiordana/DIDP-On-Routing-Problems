@@ -549,5 +549,25 @@
         "Optimality: ": false,
         "Best Cost: ": null,
         "Best Path: ": null
+    },
+    "DIDP_No_Implied_Opt": {
+        "Times: ": [
+            0,
+            600
+        ],
+        "Solution Costs: ": null,
+        "Optimality: ": false,
+        "Best Cost: ": null,
+        "Best Path: ": null
+    },
+    "DIDP_Base_Opt": {
+        "Times: ": [
+            0,
+            600
+        ],
+        "Solution Costs: ": null,
+        "Optimality: ": false,
+        "Best Cost: ": null,
+        "Best Path: ": null
     }
 }
