@@ -9,7 +9,9 @@ methods = ["DIDP_Complete",
            "DIDP_No_Bound",
            "DIDP_No_Implied",
            "DIDP_Base",
-           "CP_Model"]
+           "CP_Model",
+           "DIDP_No_Implied_Opt",
+           "DIDP_Base_Opt"]
 
 results = ["A", "M", "Golden"]
                 
