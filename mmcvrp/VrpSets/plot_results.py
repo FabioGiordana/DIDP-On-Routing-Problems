@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import os
 import sys
 from pathlib import Path
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
 from utils import primal_gap, primal_integral
 
 methods = ["DIDP_Complete",
@@ -57,7 +60,18 @@ def best_solution(filename):
 def retrieve_info(filename, method):
     with open(f"{filename}.json", "r") as file:
         data = json.load(file)
-        return data[method]["Solution Costs: "], data[method]["Times: "]
+        paths = data[method]["Best Path: "]
+        vehicles = len(paths) if paths is not None else None
+        return data[method]["Solution Costs: "], data[method]["Times: "], vehicles
+
+def save_table(filename, data):
+    dir = "Plots"
+    doc = SimpleDocTemplate(f"{dir}/{filename}", pagesize=A4)
+    # Create a table object
+    table = Table(data)
+    # Build the PDF
+    doc.build([table])
+
 
 def plot_solutions():
     os.makedirs("Plots", exist_ok=True)
@@ -78,11 +92,15 @@ def plot_solutions():
         instances = list(instances)
         total = len(instances)
         count = 1
+        header = ["Instance"] + methods
+        table = [header]
         for filepath in instances:
             filepath = str(filepath.stem)
             best_known = best_solution(f"Results/{g}/{filepath}")
+            row = [filepath]
             for m in methods:
-                solutions, times = retrieve_info(f"Results/{g}/{filepath}", m)
+                solutions, times, vehicles = retrieve_info(f"Results/{g}/{filepath}", m)
+                row.append(vehicles)
                 if solutions is None:
                     solutions = [None]
                 integral = primal_integral(times, solutions, best_known)
@@ -91,9 +109,11 @@ def plot_solutions():
                 all_integral[m][all_count/all_total] = all_integral[m][(all_count-1)/all_total] + integral
                 cumulative_gap[m][count/total] = cumulative_gap[m][(count-1)/total] + gap 
                 all_gap[m][all_count/all_total] = all_gap[m][(all_count-1)/all_total] + gap
+            table.append(row)
             count += 1
             all_count += 1
 
+        save_table(f"Vehicles_{g}.pdf", table)
         save_solutions(cumulative_integral, f"Primal Integral for {g} benchmark instances", 
                        "Primal integral", f"Integral_{g}.jpg")
         save_solutions(cumulative_gap, f"Primal Gap for {g} benchmark instances", 
