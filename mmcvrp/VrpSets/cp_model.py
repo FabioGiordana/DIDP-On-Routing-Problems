@@ -3,9 +3,12 @@ import os
 import subprocess
 import re
 
+methods = {"CP_Model": "mmcvrp.mzn",
+           "CP_Model_No_Imp": "mmcvrp_no_imp.mzn"}
+
 class CPModel():
-    def __init__(self, model="mmcvrp.mzn"):
-        self.model = model
+    def __init__(self):
+        pass
 
     def make_int(self, array):
         res = []
@@ -90,13 +93,13 @@ class CPModel():
 
         return solution_paths, obj_values, times, is_optimal
 
-    def solve(self, instance, name, time_limit):
+    def solve(self, instance, name, time_limit, method):
         instance = self.convert_instance(instance)
         filename = f"Minizinc-Data/{name}.dzn"
         self.write_dzn_file(filename, instance)
         result = subprocess.run(
             ['minizinc', '--solver', 'gecode', "--all-solutions", '--output-time', '--fzn-flags', 
-             f'--time {time_limit*1000}', self.model, filename],
+             f'--time {time_limit*1000}', methods[method], filename],
             capture_output=True, text=True
         )
         solution_path, solution_costs, times, opt = self.extract_obj_time(result.stdout, instance)

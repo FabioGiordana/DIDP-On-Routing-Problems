@@ -4,8 +4,7 @@ import os
 import sys
 from pathlib import Path
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
-from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table
 from utils import primal_gap, primal_integral
 
 methods = ["DIDP_Complete",
@@ -14,7 +13,8 @@ methods = ["DIDP_Complete",
            "DIDP_Base",
            "CP_Model",
            "DIDP_No_Implied_Opt",
-           "DIDP_Base_Opt"]
+           "DIDP_Base_Opt",
+           "CP_Model_No_Imp"]
 
 results = ["A", "M", "Golden"]
                 

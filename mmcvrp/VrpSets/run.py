@@ -106,7 +106,7 @@ def read_instances(file_path):
 
 if __name__ == "__main__":
     time_limit = 600
-    folder = "Vrp-Set-Golden/Golden"
+    folder = "Vrp-Set-A/A"
     cp_model = CPModel()
     didp_model = DIDPModel()
     os.makedirs("Results", exist_ok=True)
@@ -117,7 +117,7 @@ if __name__ == "__main__":
         if instance["n"] > 501:
             print(f"Skipping {filepath} due to the dimension of the instance")
         else:
-            dir = f"Results/Golden"
+            dir = f"Results/A"
             os.makedirs(dir, exist_ok=True)
             if os.path.exists(f"{dir}/{filepath}.json"):
                 try:
@@ -128,16 +128,17 @@ if __name__ == "__main__":
             else:
                 data = {}
             print(f"Solving instance {filepath}")
-            if "CP_Model" not in data.keys():
-                    print(f"Running CP_Model")
-                    solution_costs, times, best_cost, best_path, opt = cp_model.solve(copy.deepcopy(instance), f"{filepath}", time_limit)
-                    data["CP_Model"] = {"Times: ": times,
-                    "Solution Costs: ": solution_costs, 
-                    "Optimality: ": opt,
-                    "Best Cost: ": best_cost,
-                    "Best Path: ": best_path}
-                    with open(f"{dir}/{filepath}.json", "w") as json_file:
-                            json.dump(data, json_file, indent=4)
+            for method in ["CP_Model", "CP_Model_No_Imp"]:
+                if method not in data.keys():
+                        print(f"Running {method}")
+                        solution_costs, times, best_cost, best_path, opt = cp_model.solve(copy.deepcopy(instance), f"{filepath}", time_limit, method)
+                        data[method] = {"Times: ": times,
+                        "Solution Costs: ": solution_costs, 
+                        "Optimality: ": opt,
+                        "Best Cost: ": best_cost,
+                        "Best Path: ": best_path}
+                        with open(f"{dir}/{filepath}.json", "w") as json_file:
+                                json.dump(data, json_file, indent=4)
             for method in methods.keys():
                 if method not in data.keys():
                     print(f"Running {method}")
