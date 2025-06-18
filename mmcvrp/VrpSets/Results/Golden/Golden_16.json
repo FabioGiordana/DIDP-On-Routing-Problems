@@ -4091,5 +4091,15 @@
                 404
             ]
         ]
+    },
+    "CP_Model_No_Imp": {
+        "Times: ": [
+            0,
+            600
+        ],
+        "Solution Costs: ": null,
+        "Optimality: ": false,
+        "Best Cost: ": null,
+        "Best Path: ": null
     }
 }

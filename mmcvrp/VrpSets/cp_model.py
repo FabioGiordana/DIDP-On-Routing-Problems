@@ -102,9 +102,17 @@ class CPModel():
              f'--time {time_limit*1000}', methods[method], filename],
             capture_output=True, text=True
         )
-        solution_path, solution_costs, times, opt = self.extract_obj_time(result.stdout, instance)
-        solution_costs = [round(s/1000,1) for s in solution_costs]
-        solution_costs.insert(0, None)
+        if "UNKNOWN" in result.stdout:
+            solution_costs = None
+            times = []
+            best_cost = None
+            solution_path = None
+            opt = False
+        else:
+            solution_path, solution_costs, times, opt = self.extract_obj_time(result.stdout, instance)
+            solution_costs = [round(s/1000,1) for s in solution_costs]
+            solution_costs.insert(0, None)
+            best_cost = solution_costs[-1]
         times.insert(0, 0)
         times.append(max(times[-1], time_limit))
-        return solution_costs, times, solution_costs[-1], solution_path, opt
+        return solution_costs, times, best_cost, solution_path, opt

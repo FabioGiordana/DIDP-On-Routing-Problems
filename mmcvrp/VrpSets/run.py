@@ -106,7 +106,7 @@ def read_instances(file_path):
 
 if __name__ == "__main__":
     time_limit = 600
-    folder = "Vrp-Set-A/A"
+    folder = "Vrp-Set-Golden/Golden"
     cp_model = CPModel()
     didp_model = DIDPModel()
     os.makedirs("Results", exist_ok=True)
@@ -117,7 +117,7 @@ if __name__ == "__main__":
         if instance["n"] > 501:
             print(f"Skipping {filepath} due to the dimension of the instance")
         else:
-            dir = f"Results/A"
+            dir = f"Results/Golden"
             os.makedirs(dir, exist_ok=True)
             if os.path.exists(f"{dir}/{filepath}.json"):
                 try:
