@@ -7,12 +7,16 @@ import copy
 from pathlib import Path
 import re
 
-methods = {"DIDP_Complete": (True, True, False),
-           "DIDP_No_Bound": (False, True, False),
-           "DIDP_No_Implied": (True, False, False),
-           "DIDP_Base": (False, False, False),
-           "DIDP_No_Implied_Opt": (True, False, True),
-           "DIDP_Base_Opt": (False, False, True)}
+methods = {"DIDP_Complete": (True, True, False, False),
+           "DIDP_No_Bound": (False, True, False, False),
+           "DIDP_No_Implied": (True, False, False, False),
+           "DIDP_Base": (False, False, False, False),
+           "DIDP_No_Implied_Opt": (True, False, True, False),
+           "DIDP_Base_Opt": (False, False, True, False),
+           "DIDP_GTR_Complete": (True, True, False, True),
+           "DIDP_GTR_No_Bound": (False, True, False, True),
+           "DIDP_GTR_No_Implied": (True, False, False, True),
+           "DIDP_GTR_Base": (False, False, False, True)}
 
 def compute_distance(p1, p2):
     x1 = p1[0]
@@ -95,6 +99,7 @@ def read_instances(file_path):
     m = int(vehicle_match.group(1)) if vehicle_match else None
     if m is None:
         m = count_vehicles(f"{file_path}.sol")
+        
     return {
         "n": n,
         "m": m,
@@ -106,7 +111,7 @@ def read_instances(file_path):
 
 if __name__ == "__main__":
     time_limit = 600
-    folder = "Vrp-Set-Golden/Golden"
+    folder = "Vrp-Set-A/A"
     cp_model = CPModel()
     didp_model = DIDPModel()
     os.makedirs("Results", exist_ok=True)
@@ -117,7 +122,7 @@ if __name__ == "__main__":
         if instance["n"] > 501:
             print(f"Skipping {filepath} due to the dimension of the instance")
         else:
-            dir = f"Results/Golden"
+            dir = f"Results/A"
             os.makedirs(dir, exist_ok=True)
             if os.path.exists(f"{dir}/{filepath}.json"):
                 try:
@@ -128,7 +133,7 @@ if __name__ == "__main__":
             else:
                 data = {}
             print(f"Solving instance {filepath}")
-            for method in ["CP_Model", "CP_Model_No_Imp"]:
+            for method in ["CP_Model", "CP_Model_No_Imp", "CP_Model_GTR"]:
                 if method not in data.keys():
                         print(f"Running {method}")
                         solution_costs, times, best_cost, best_path, opt = cp_model.solve(copy.deepcopy(instance), f"{filepath}", time_limit, method)
@@ -142,8 +147,8 @@ if __name__ == "__main__":
             for method in methods.keys():
                 if method not in data.keys():
                     print(f"Running {method}")
-                    bound, implied, opt = methods[method]
-                    solution_costs, times, best_cost, best_path, opt = didp_model.solve(instance,time_limit, bound, implied, opt)
+                    bound, implied, opt, gtr = methods[method]
+                    solution_costs, times, best_cost, best_path, opt = didp_model.solve(instance,time_limit, bound, implied, opt, gtr)
                     data[method] = {"Times: ": times,
                     "Solution Costs: ": solution_costs, 
                     "Optimality: ": opt,
@@ -151,3 +156,4 @@ if __name__ == "__main__":
                     "Best Path: ": best_path}
                     with open(f"{dir}/{filepath}.json", "w") as json_file:
                             json.dump(data, json_file, indent=4)
+        break

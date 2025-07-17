@@ -4,7 +4,8 @@ import subprocess
 import re
 
 methods = {"CP_Model": "mmcvrp.mzn",
-           "CP_Model_No_Imp": "mmcvrp_no_imp.mzn"}
+           "CP_Model_No_Imp": "mmcvrp_no_imp.mzn",
+           "CP_Model_GTR" : "mmcvrp_gtr.mzn"}
 
 class CPModel():
     def __init__(self):
@@ -14,6 +15,28 @@ class CPModel():
         res = []
         for elem in array:
             res.append(int(elem*1000))
+        return res
+    
+    def modify_array(self, arr, n, m):
+        res = []
+        for i in range(1,n):
+            res.append(arr[i])
+        for i in range(2*m):
+            res.append(arr[0])
+        return res
+
+    def modify_cost(self, arr, n, m):
+        res = []
+        for i in range(1,n):
+            tmp = arr[i][1:]
+            for _ in range(2*m):
+                tmp.append(arr[i][0])
+            res.append(tmp)
+        for _ in range(2*m):
+            tmp = arr[0][1:]
+            for _ in range(2*m):
+                tmp.append(arr[0][0])
+            res.append(tmp)
         return res
 
     def convert_instance(self, instance):
@@ -26,11 +49,11 @@ class CPModel():
         min_to_from = [int_c[0][j] + int_c[j][0] for j in range(n)]
         max_to = [max(int_c[j][k] for k in range(n) if k != j) for j in range(n)]
         max_from = [max(int_c[k][j] for k in range(n) if k != j) for j in range(n)]
-        cp_instance["n"] = n
+        cp_instance["n"] = n - 1
         cp_instance["m"] = m
         cp_instance["q"] = instance["q"]
-        cp_instance["d"] = instance["d"]
-        cp_instance["c"] = int_c
+        cp_instance["d"] = self.modify_array(instance["d"], n, m)
+        cp_instance["c"] = self.modify_cost(int_c, n, m)
         cp_instance["lower_b"] = max(min_to_from)
         cp_instance["upper_b"] = min(sum(max_to), sum(max_from))
         return cp_instance
@@ -50,28 +73,14 @@ class CPModel():
                 else:  # Handle integers, floats, etc.
                     f.write(f"{key} = {value};\n")
 
-    def build_paths(self, path_match, n, m):
-        flat_path = list(map(int, path_match.strip().split(',')))
-
-        if len(flat_path) != m * n:
-            raise ValueError(f"Path length mismatch: expected {m*n}, got {len(flat_path)}")
-
-        path_matrix = [flat_path[i * n:(i + 1) * n] for i in range(m)]
-
-        solution_paths = []
-        for path in path_matrix:
-            tmp = []
-            next = path[0] - 1
-            while next!= 0:
-                tmp.append(next)
-                next = path[next] -1
-            solution_paths.append(tmp)   
-        return solution_paths
-
   
     def extract_obj_time(self, stdout, instance):
-        n = instance["n"]
+        n = instance["n"] - 1
         m = instance["m"]
+        int_c = []
+        for row in instance["c"]:
+            int_c.append(self.make_int(row))
+        instance["c"] = int_c
         # Extract all objective values
         obj_values = list(map(int, re.findall(r'obj\s*=\s*(\d+)', stdout)))
         
@@ -79,24 +88,37 @@ class CPModel():
         times = list(map(float, re.findall(r'% time elapsed:\s*([\d.]+)\s*s', stdout)))
         
         # Extract the last path array (flattened)
-        path_matches = re.findall(r'path\s*=\s*\[([^\]]+)\]', stdout)
-        if not path_matches:
+        matches = re.findall(r"path\s*=\s*\[([^\]]+)\]", stdout)
+        sol_path = list(map(int, matches[-1].split(',')))  # Get last match & convert to list
+        start_nodes = [i for i in range(n+1, n+m+1)]
+        end_nodes = [i for i in range(n+m+1, n+2*m+1)]
+        if not matches:
             raise ValueError("No path array found in stdout.")
-        
-        solution_paths = []
-        for i in range(len(path_matches)):
-            solution_paths = self.build_paths(path_matches[i], n, m)   
-            check_solution(solution_paths, obj_values[i], instance)
-        
+        customer = sol_path[n]
+        paths = []
+        path = []
+        while customer != n + 2*m:
+            if customer in end_nodes:
+                if len(path) > 0:
+                    paths.append(path)
+            elif customer in start_nodes:
+                path = []
+            else:
+                path.append(customer)
+            customer = sol_path[customer-1]
+        if len(path) > 0:
+            paths.append(path)
+
+        check_solution(paths, obj_values[-1], instance)
         optimal_match = re.findall(r'={10}(.*)', stdout)
         is_optimal = any("optimal" in line.lower() for line in optimal_match) or len(optimal_match) == 1
 
-        return solution_paths, obj_values, times, is_optimal
+        return paths, obj_values, times, is_optimal
 
     def solve(self, instance, name, time_limit, method):
-        instance = self.convert_instance(instance)
+        cp_instance = self.convert_instance(instance)
         filename = f"Minizinc-Data/{name}.dzn"
-        self.write_dzn_file(filename, instance)
+        self.write_dzn_file(filename, cp_instance)
         result = subprocess.run(
             ['minizinc', '--solver', 'gecode', "--all-solutions", '--output-time', '--fzn-flags', 
              f'--time {time_limit*1000}', methods[method], filename],
