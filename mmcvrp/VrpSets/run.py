@@ -156,4 +156,4 @@ if __name__ == "__main__":
                     "Best Path: ": best_path}
                     with open(f"{dir}/{filepath}.json", "w") as json_file:
                             json.dump(data, json_file, indent=4)
-        break
+        
