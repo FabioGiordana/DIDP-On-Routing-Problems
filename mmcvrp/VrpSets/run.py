@@ -133,7 +133,7 @@ if __name__ == "__main__":
             else:
                 data = {}
             print(f"Solving instance {filepath}")
-            for method in ["CP_Model", "CP_Model_No_Imp", "CP_Model_GTR"]:
+            for method in ["CP_Model", "CP_Model_No_Imp", "CP_Model_GTR", "CP_Model_GTR_Implied"]:
                 if method not in data.keys():
                         print(f"Running {method}")
                         solution_costs, times, best_cost, best_path, opt = cp_model.solve(copy.deepcopy(instance), f"{filepath}", time_limit, method)

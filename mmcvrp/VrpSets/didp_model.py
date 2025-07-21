@@ -276,7 +276,7 @@ class DIDPModel():
             check_solution(solution_path, solution.cost, instance)
             times.append(solution.time)
             solution_costs.append(round(solution.cost,1))
-        times.append(time_limit)
+        times.append(max(times[-1], time_limit))
         return solution_costs, times, solution_costs[-1], solution_path, solution.is_optimal
 
        

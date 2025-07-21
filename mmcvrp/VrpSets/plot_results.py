@@ -14,10 +14,16 @@ methods = {"DIDP_Complete": "DIDP_Complete",
            "DIDP_No_Bound": "DIDP_Implied",
            "DIDP_No_Implied": "DIDP_Bound",
            "DIDP_Base": "DIDP_Base",
-           #"CP_Model": "CP_Model",
+           "CP_Model": "CP_Model",
            "DIDP_No_Implied_Opt": "DIDP_Bound_Opt",
-           "DIDP_Base_Opt": "DIDP_Base_Opt"}
-           #"CP_Model_No_Imp": "Cp_Model_No_Imp"}
+           "DIDP_Base_Opt": "DIDP_Base_Opt",
+           "CP_Model_No_Imp": "Cp_Model_No_Implied",
+           "CP_Model_GTR": "CP_Model_GTR_No_Implied",
+           "CP_Model_GTR_Implied": "CP_Model_GTR_Implied",
+           "DIDP_GTR_Complete": "DIDI_GTR_Complete",
+           "DIDP_GTR_No_Bound": "DIDP_GTR_Implied",
+           "DIDP_GTR_No_Implied": "DIDP_GTR_Bound",
+           "DIDP_GTR_Base": "DIDP_GTR_Base"}
 
 results = ["A", "M", "Golden"]
                 
