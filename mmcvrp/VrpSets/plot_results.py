@@ -23,7 +23,24 @@ methods = {"DIDP_Complete": "DIDP_Complete",
            "DIDP_GTR_Complete": "DIDI_GTR_Complete",
            "DIDP_GTR_No_Bound": "DIDP_GTR_Implied",
            "DIDP_GTR_No_Implied": "DIDP_GTR_Bound",
-           "DIDP_GTR_Base": "DIDP_GTR_Base"}
+           "DIDP_GTR_Base": "DIDP_GTR_Base"
+}
+
+show = {#"DIDP_Complete": "DIDP_Complete",
+           #"DIDP_No_Bound": "DIDP_Implied",
+           "DIDP_No_Implied": "DIDP_Bound",
+           #"DIDP_Base": "DIDP_Base",
+           #"CP_Model": "CP_Model_Implied",
+           #"DIDP_No_Implied_Opt": "DIDP_Bound",
+           #"DIDP_Base_Opt": "DIDP_Base",
+           #"CP_Model_No_Imp": "Cp_Model_No_Implied",
+           #"CP_Model_GTR": "CP_Model_GTR_No_Implied",
+           "CP_Model_GTR_Implied": "CP_Model_GTR_Implied",
+           "DIDP_GTR_Complete": "DIDI_GTR_Complete",
+           #"DIDP_GTR_No_Bound": "DIDP_GTR_Implied",
+           #"DIDP_GTR_No_Implied": "DIDP_GTR_Bound",
+           #"DIDP_GTR_Base": "DIDP_GTR_Base"
+}
 
 results = ["A", "M", "Golden"]
                 
@@ -39,10 +56,10 @@ def save_solutions(d, title, x_title, filename):
     dir = "Plots"
     os.makedirs(dir, exist_ok=True)
     plt.figure(figsize=(8, 5))
-    for m in methods.keys():
+    for m in show.keys():
         x_vals = list(d[m].values())
         y_vals = list(d[m].keys())
-        plt.plot(x_vals, y_vals, marker='o', label=methods[m])
+        plt.plot(x_vals, y_vals, marker='o', label=show[m])
     
     plt.xlabel(x_title)
     plt.ylabel("Ratio of Instances")
