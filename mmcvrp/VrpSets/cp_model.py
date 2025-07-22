@@ -6,7 +6,9 @@ import re
 methods = {"CP_Model": "mmcvrp.mzn",
            "CP_Model_No_Imp": "mmcvrp_no_imp.mzn",
            "CP_Model_GTR" : "mmcvrp_gtr.mzn",
-           "CP_Model_GTR_Implied" : "mmcvrp_gtr_imp.mzn"}
+           "CP_Model_GTR_Implied" : "mmcvrp_gtr_imp.mzn",
+           "CP_Model_GTR_Implied_Symmetry" : "mmcvrp_gtr_imp_sym.mzn",
+           "CP_Model_GTR_Symmetry" : "mmcvrp_gtr_sym.mzn"}
 
 class CPModel():
     def __init__(self):

@@ -111,7 +111,7 @@ def read_instances(file_path):
 
 if __name__ == "__main__":
     time_limit = 600
-    folder = "Vrp-Set-M/M"
+    folder = "Vrp-Set-Golden/Golden"
     cp_model = CPModel()
     didp_model = DIDPModel()
     os.makedirs("Results", exist_ok=True)
@@ -122,7 +122,7 @@ if __name__ == "__main__":
         if instance["n"] > 501:
             print(f"Skipping {filepath} due to the dimension of the instance")
         else:
-            dir = f"Results/M"
+            dir = f"Results/Golden"
             os.makedirs(dir, exist_ok=True)
             if os.path.exists(f"{dir}/{filepath}.json"):
                 try:
@@ -133,7 +133,8 @@ if __name__ == "__main__":
             else:
                 data = {}
             print(f"Solving instance {filepath}")
-            for method in ["CP_Model", "CP_Model_No_Imp", "CP_Model_GTR", "CP_Model_GTR_Implied"]:
+            for method in ["CP_Model", "CP_Model_No_Imp", "CP_Model_GTR", "CP_Model_GTR_Implied", "CP_Model_GTR_Implied_Symmetry", 
+                           "CP_Model_GTR_Symmetry"]:
                 if method not in data.keys():
                         print(f"Running {method}")
                         solution_costs, times, best_cost, best_path, opt = cp_model.solve(copy.deepcopy(instance), f"{filepath}", time_limit, method)
