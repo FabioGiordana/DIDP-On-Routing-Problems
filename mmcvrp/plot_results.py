@@ -2,97 +2,186 @@ import json
 import matplotlib.pyplot as plt
 import os
 import sys
+from pathlib import Path
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from utils import primal_gap, primal_integral
+from collections import Counter
 
-methods = ["Bound", "No_Bound"]
-comparisons = {"CP": [(14,True),(226,True),(12,True),(220,True),(206,True),(322,True),(167,True),
-                      (186,True),(436,True),(244,True), (304,False), (346, True), (434,False),
-                      (589,False),(567,False),(286,True),(932,False),(456,False),(334,True),
-                      (902,False),(374,False)],
-                "SAT": [(14,True),(226,True),(12,True),(220,True),(206,True),(322,True),(167,True),
-                      (186,True),(436,True),(244,True),(None,False),(None,False),(1062,False),
-                      (None,False),(None,False),(438,False),(None,False),(None,False),(None,False),
-                      (None,False),(None,False)],
-                "SMT": [(14,True),(226,True),(12,True),(220,True),(206,True),(322,True),(167,True),
-                      (186,True),(436,True),(244,True),(547,False),(435,False),(632,False),
-                      (1177,False),(1140,False),(286,False),(1525,False),(917,False),(398,False),
-                      (1378,False),(648,False)],
-                "MIP": [(14,True),(226,True),(12,True),(220,True),(206,True),(322,True),(167,True),
-                      (186,True),(436,True),(244,True),(537,False),(346,False),(398,False),
-                      (None,False),(838,False),(286,True),(None,False),(568,False),(334,False),
-                      (None,False),(548,False)]}
+methods = {"DIDP_Complete": "DIDP_Complete",
+           "DIDP_No_Bound": "DIDP_Implied",
+           "DIDP_No_Implied": "DIDP_Bound",
+           "DIDP_Base": "DIDP_Base",
+           "CP_Model": "CP_Model",
+           "DIDP_No_Implied_Opt": "DIDP_Bound_Opt",
+           "DIDP_Base_Opt": "DIDP_Base_Opt",
+           "CP_Model_No_Imp": "Cp_Model_No_Implied",
+           "CP_Model_GTR": "CP_Model_GTR_No_Implied",
+           "CP_Model_GTR_Implied": "CP_Model_GTR_Implied",
+           "DIDP_GTR_Complete": "DIDI_GTR_Complete",
+           "DIDP_GTR_No_Bound": "DIDP_GTR_Implied",
+           "DIDP_GTR_No_Implied": "DIDP_GTR_Bound",
+           "DIDP_GTR_Base": "DIDP_GTR_Base"
+}
+
+show = {#"DIDP_Complete": "DIDP_Complete",
+           #"DIDP_No_Bound": "DIDP_Implied",
+           "DIDP_No_Implied": "DIDP_Bound",
+           #"DIDP_Base": "DIDP_Base",
+           #"CP_Model": "CP_Model_Implied",
+           #"DIDP_No_Implied_Opt": "DIDP_Bound",
+           #"DIDP_Base_Opt": "DIDP_Base",
+           #"CP_Model_No_Imp": "Cp_Model_No_Implied",
+           #"CP_Model_GTR": "CP_Model_GTR_No_Implied",
+           "CP_Model_GTR_Implied": "CP_Model_GTR_Implied",
+           "DIDP_GTR_Complete": "DIDI_GTR_Complete",
+           #"DIDP_GTR_No_Bound": "DIDP_GTR_Implied",
+           #"DIDP_GTR_No_Implied": "DIDP_GTR_Bound",
+           #"DIDP_GTR_Base": "DIDP_GTR_Base"
+}
+
+results = ["A", "Golden"]
+                
 
 def init_dict():
     d = {}
-    for m in methods:
-        d[m] = {0.0 : 0}
-    for c in comparisons:
-        d[c] = {0.0 : 0}
+    for m in methods.keys():
+        d[m] = {0.0 : 0.0}
     return d
 
-def primal_gap(solution_cost, best_known):
-    if solution_cost is None or solution_cost*best_known < 0:
-        return 1
-    elif solution_cost==best_known==0:
-        return 0
-    else:
-        return abs(solution_cost - best_known)/(max(abs(solution_cost), abs(best_known)))
 
-
-def save_solutions(d, title, filename):
+def save_solutions(d, title, x_title, filename):
     dir = "Plots"
     os.makedirs(dir, exist_ok=True)
     plt.figure(figsize=(8, 5))
-    for m in methods:
-        x_vals = list(d[m].keys())
-        y_vals = list(d[m].values())
-        plt.plot(x_vals, y_vals, marker='o', label=m)
-    for c in comparisons:
-        x_vals = list(d[c].keys())
-        y_vals = list(d[c].values())
-        plt.plot(x_vals, y_vals, marker='o', label=c)
-
-    plt.xlabel("Instances")
-    plt.ylabel("Coverage")
+    for m in show.keys():
+        x_vals = list(d[m].values())
+        y_vals = list(d[m].keys())
+        plt.plot(x_vals, y_vals, marker='o', label=show[m])
+    
+    plt.xlabel(x_title)
+    plt.ylabel("Ratio of Instances")
     plt.title(title)
     plt.legend()
     plt.grid()
     plt.savefig(f"{dir}/{filename}")
     plt.close()
+    
+
+    
+def best_solution(filename):
+    with open(f"{filename}.json", "r") as file:
+        data = json.load(file)
+        best_known = sys.maxsize
+        for m in methods.keys():
+            cost = data[m]["Best Cost: "]
+            if cost is not None and cost < best_known:
+                best_known = cost
+    if best_known == sys.maxsize:
+        print(f"No solution found for {filename}")
+    return best_known
+
+def retrieve_info(filename, method):
+    with open(f"{filename}.json", "r") as file:
+        data = json.load(file)
+        paths = data[method]["Best Path: "]
+        vehicles = len(paths) if paths is not None else None
+        return data[method]["Solution Costs: "], data[method]["Times: "], vehicles
+
+def save_table(filename, data):
+    dir = "Plots"
+    os.makedirs(dir, exist_ok=True)
+
+    doc = SimpleDocTemplate(f"{dir}/{filename}", pagesize=A4)
+
+    # Calculate usable width
+    page_width = A4[0]
+    left_margin = right_margin = 72
+    usable_width = page_width - left_margin - right_margin
+    num_cols = len(data[0])
+    col_width = usable_width / num_cols
+    col_widths = [col_width] * num_cols
+
+    # Create table
+    table = Table(data, colWidths=col_widths)
+
+    # Base style
+    style = TableStyle([
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    ])
+
+    # Apply red text for values different from row mode
+    for row_idx, row in enumerate(data[1:], start=1):  # Skip header (row 0)
+        # Find the most frequent value in the row
+        freq = Counter(row)
+        mode_val, _ = freq.most_common(1)[0]
+
+        for col_idx, cell in enumerate(row):
+            if cell != mode_val:
+                style.add('TEXTCOLOR', (col_idx, row_idx), (col_idx, row_idx), colors.red)
+
+    table.setStyle(style)
+    doc.build([table])
+
 
 def plot_solutions():
-    cumulative_coverage = init_dict()
-    mean_primal_gap = {}
-    for m in methods:
-        mean_primal_gap[m] = 0.0
-    for c in comparisons:
-        mean_primal_gap[c] = 0.0
-    for i in range(1,22):
-        with open(f"Results//inst{i:02}.json", "r") as file:
-            data = json.load(file)
-            best_known = sys.maxsize
-            costs = {}
-            for m in methods:
-                coverage = 1 if data[m]["Optimal: "] else 0
-                cost = data[m]["Solution Cost: "]
-                costs[m] = cost
-                if cost < best_known:
-                    best_known = cost
-                cumulative_coverage[m][i] = cumulative_coverage[m][(i-1)] + coverage
-            for c in comparisons:
-                coverage = 1 if comparisons[c][i-1][1] else 0
-                cost = comparisons[c][i-1][0]
-                costs[c] = cost
-                if cost is not None and cost < best_known:
-                    best_known = cost
-                cumulative_coverage[c][i] = cumulative_coverage[c][(i-1)] + coverage
-            for m in methods:
-                mean_primal_gap[m] += primal_gap(costs[m], best_known)/21 
-            for c in comparisons:
-                mean_primal_gap[c] += primal_gap(costs[c], best_known)/21        
-    save_solutions(cumulative_coverage, title = f"Coverages of different models", 
-                   filename=f"Coverage.jpg")
-    with open(f"Plots/Primal_gaps.json", "w") as json_file:
-                json.dump(mean_primal_gap, json_file, indent=4)
+    os.makedirs("Plots", exist_ok=True)
+    all_integral = init_dict()
+    all_gap = init_dict()
+    all_count = 1
+    all_total = 0
+    for g in results:
+        folder = f"Results/{g}"
+        instances = Path(folder).rglob("*.json")
+        instances = list(instances)
+        all_total += len(instances)
+    for g in results:
+        cumulative_integral = init_dict()
+        cumulative_gap = init_dict()
+        folder = f"Results/{g}"
+        instances = Path(folder).rglob("*.json")
+        instances = list(instances)
+        total = len(instances)
+        count = 1
+        header = ["Instance"] + list(methods.values())
+        table = [header]
+        for filepath in instances:
+            filepath = str(filepath.stem)
+            best_known = best_solution(f"Results/{g}/{filepath}")
+            row = [filepath]
+            for m in methods.keys():
+                solutions, times, vehicles = retrieve_info(f"Results/{g}/{filepath}", m)
+                row.append(vehicles)
+                if solutions is None:
+                    solutions = [None]
+                integral = primal_integral(times, solutions, best_known)
+                gap = primal_gap(solutions[-1], best_known)
+                cumulative_integral[m][count/total] = cumulative_integral[m][(count-1)/total] + integral
+                all_integral[m][all_count/all_total] = all_integral[m][(all_count-1)/all_total] + integral
+                cumulative_gap[m][count/total] = cumulative_gap[m][(count-1)/total] + gap 
+                all_gap[m][all_count/all_total] = all_gap[m][(all_count-1)/all_total] + gap
+            table.append(row)
+            count += 1
+            all_count += 1
+
+        save_table(f"Vehicles_{g}.pdf", table)
+        save_solutions(cumulative_integral, f"Primal Integral for {g} benchmark instances", 
+                       "Primal integral", f"Integral_{g}.jpg")
+        save_solutions(cumulative_gap, f"Primal Gap for {g} benchmark instances", 
+                       "Primal gap", f"Gap_{g}.jpg")
+    save_solutions(all_integral, f"Primal Integral for all the benchmark instances", 
+                       "Primal integral", f"Integral_Total.jpg")
+    save_solutions(all_gap, f"Primal Gap for all the benchmark instances", 
+                       "Primal gap", f"Gap_Total.jpg")
+    
+
+
+
         
 if __name__ == "__main__":
     plot_solutions()
